@@ -1,4 +1,4 @@
-let res = "";
+let data = ''
 function convertir() {
   const m = document.querySelector("#monedas");
   const c = document.querySelector("#cantidad");
@@ -8,7 +8,7 @@ function convertir() {
 
   v.innerHTML = currencyFormatDE(vc);
 
-  renderGrafica(res);
+  
 }
 
 function currencyFormatDE(num) {
@@ -22,13 +22,8 @@ function currencyFormatDE(num) {
 
 async function getDatos() {
   try {
-    res = await fetch("https://api.gael.cloud/general/public/monedas", {
-      mode: "cors",
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-    const data = await res.json();
+    const res = await fetch("https://api.gael.cloud/general/public/monedas");
+    data = await res.json();
 
     let e = document.querySelector("#monedas");
 
@@ -38,6 +33,45 @@ async function getDatos() {
     }
 
     e.innerHTML = html;
+    renderGrafica(data);
   } catch (e) {}
 }
+
+function prepararConfiguracionParaLaGrafica(monedas) {
+  const tipoDeGrafica = "line";
+  const nombresDeLasMonedas = monedas.map((moneda) => moneda.Codigo);
+  const titulo = "Monedas";
+  const colorDeLinea = "red";
+  const valores = monedas.map((moneda) => {
+      const valor = moneda.Valor.replace(",", ".");
+      return Number(valor);
+  });
+
+
+  const config = {
+      type: tipoDeGrafica,
+      data: {
+          labels: nombresDeLasMonedas,
+          datasets: [{
+              label: titulo,
+              backgroundColor: colorDeLinea,
+              data: valores
+          }
+          ]
+      }
+  };
+  return config;
+}
+
+
+
+async function renderGrafica(valores) {
+
+  const config = await prepararConfiguracionParaLaGrafica(valores);
+  const chartDOM = document.getElementById("myChart");
+  
+ new Chart(chartDOM, config);
+}
+
 getDatos();
+
